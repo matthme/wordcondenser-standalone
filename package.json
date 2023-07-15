@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "tauri": "tauri",
-    "prepare": "curl -L --output pouch/word-condenser.happ https://drive.switch.ch/index.php/s/IvkwsWMAi3MlCBP/download && curl -L --output ui.zip https://drive.switch.ch/index.php/s/MguaUTxgRRpK8yv/download && extract-zip ui.zip ./pouch/ui && rimraf ui.zip"
+    "prepare": "curl -L --output pouch/word-condenser.happ https://drive.switch.ch/index.php/s/ZaDLfjWesNv1xns/download && curl -L --output ui.zip https://drive.switch.ch/index.php/s/4OMjseLkPE4JLIl/download && extract-zip ui.zip ./pouch/ui && rimraf ui.zip"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.4.0",
