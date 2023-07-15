@@ -10,7 +10,7 @@ use holochain::{conductor::{
     config::{AdminInterfaceConfig, ConductorConfig, KeystoreConfig},
     interface::InterfaceDriver,
     Conductor, ConductorHandle,
-}, prelude::{KitsuneP2pConfig, TransportConfig}};
+}, prelude::{KitsuneP2pConfig, TransportConfig, ProxyConfig, kitsune_p2p::dependencies::kitsune_p2p_types::config::KitsuneP2pTuningParams}};
 use holochain_types::prelude::AppBundle;
 
 use holochain_client::{AdminWebsocket, InstallAppPayload};
@@ -30,7 +30,6 @@ pub const WINDOW_WIDTH: f64 = 1400.0; // Default window width when the app is op
 pub const WINDOW_HEIGHT: f64 = 880.0; // Default window height when the app is opened
 const PASSWORD: &str = "pass"; // Password to the lair keystore
 // const NETWORK_SEED: Option<String> = None; // replace-me (optional): You may want to put a network seed here or read it secretly from an environment variable
-const SIGNALING_SERVER: &str = "wss://signal.holo.host";
 
 
 mod errors;
@@ -156,12 +155,24 @@ pub async fn launch(
     }]);
 
     let mut network_config = KitsuneP2pConfig::default();
-    network_config.bootstrap_service = Some(url2::url2!("https://bootstrap.holo.host")); // replace-me (optional) -- change bootstrap server URL here if desired
-    network_config.transport_pool.push(TransportConfig::WebRTC {
-        signal_url: SIGNALING_SERVER.into(),
+    network_config.bootstrap_service = Some(url2::url2!("https://bootstrap.holo.host"));
+
+    let tuning_params = KitsuneP2pTuningParams::default();
+
+    network_config.tuning_params = tuning_params;
+
+    network_config.transport_pool.push(TransportConfig::Proxy {
+      sub_transport: Box::new(TransportConfig::Quic {
+        bind_to: None,
+        override_host: None,
+        override_port: None,
+      }),
+      proxy_config: ProxyConfig::RemoteProxyClient {
+        proxy_url:  url2::url2!("kitsune-proxy://f3gH2VMkJ4qvZJOXx0ccL_Zo5n-s_CnBjSzAsEHHDCA/kitsune-quic/h/137.184.142.208/p/5788/--")
+      },
     });
 
-    // config.
+    config.network = Some(network_config);
 
     // TODO: set the DHT arc depending on whether this is mobile (tauri 2.0)
     let conductor = Conductor::builder()
