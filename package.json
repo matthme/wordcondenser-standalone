@@ -1,12 +1,15 @@
 {
   "name": "word-condenser",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "prepare": "curl -L --output pouch/word-condenser.happ https://drive.switch.ch/index.php/s/IvkwsWMAi3MlCBP/download && curl -L --output ui.zip https://drive.switch.ch/index.php/s/MguaUTxgRRpK8yv/download && extract-zip ui.zip ./pouch/ui && rimraf ui.zip"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.4.0"
+    "@tauri-apps/cli": "^1.4.0",
+    "rimraf": "5.0.1",
+    "extract-zip-relative-path": "2.0.4"
   }
 }
