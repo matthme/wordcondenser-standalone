@@ -10,8 +10,21 @@
     "version": "0.1.0"
   },
   "tauri": {
+    "cli": {
+      "description": "Running Word Condenser from the command line",
+      "args": [
+        {
+          "name": "profile",
+          "takesValue": true,
+          "multiple": false
+        }
+      ]
+    },
     "allowlist": {
       "all": false,
+      "clipboard": {
+        "writeText": true
+      },
       "shell": {
         "all": false,
         "open": true

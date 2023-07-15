@@ -4,6 +4,7 @@ use tauri::AppHandle;
 
 use crate::errors::{AppError, AppResult};
 
+pub type Profile = String;
 
 /// Returns a string considering the relevant part of the version regarding breaking changes
 /// Examples:
@@ -39,7 +40,7 @@ pub struct AppFileSystem {
 }
 
 impl AppFileSystem {
-    pub fn new(app_handle: &AppHandle, profile: &String) -> AppResult<AppFileSystem> {
+    pub fn new(app_handle: &AppHandle, profile: &Profile) -> AppResult<AppFileSystem> {
 
         let app_data_dir = app_handle
             .path_resolver()

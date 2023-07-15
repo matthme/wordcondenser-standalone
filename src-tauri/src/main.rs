@@ -4,21 +4,22 @@
 use std::collections::HashMap;
 
 use crate::errors::{AppError, AppResult};
-use filesystem::AppFileSystem;
+use filesystem::{AppFileSystem, Profile};
 use futures::lock::Mutex;
-use holochain::conductor::{
+use holochain::{conductor::{
     config::{AdminInterfaceConfig, ConductorConfig, KeystoreConfig},
     interface::InterfaceDriver,
     Conductor, ConductorHandle,
-};
+}, prelude::{KitsuneP2pConfig, TransportConfig}};
 use holochain_types::prelude::AppBundle;
 
 use holochain_client::{AdminWebsocket, InstallAppPayload};
 
 use logs::{setup_logs, log};
 use menu::{build_menu, handle_menu_event};
+use serde_json::Value;
 use system_tray::{handle_system_tray_event, app_system_tray};
-use tauri::{Manager, WindowBuilder, RunEvent, SystemTray, SystemTrayEvent, AppHandle, Window};
+use tauri::{Manager, WindowBuilder, RunEvent, SystemTray, SystemTrayEvent, AppHandle, Window, App};
 
 use utils::{sign_zome_call, ZOOM_ON_SCROLL};
 
@@ -29,7 +30,7 @@ pub const WINDOW_WIDTH: f64 = 1400.0; // Default window width when the app is op
 pub const WINDOW_HEIGHT: f64 = 880.0; // Default window height when the app is opened
 const PASSWORD: &str = "pass"; // Password to the lair keystore
 // const NETWORK_SEED: Option<String> = None; // replace-me (optional): You may want to put a network seed here or read it secretly from an environment variable
-
+const SIGNALING_SERVER: &str = "wss://signal.holo.host";
 
 
 mod errors;
@@ -56,26 +57,27 @@ fn main() {
           _ => {}
         })
 
-        // optional (single-instance) -- Allows only a single instance of your app running. Useful in combination with the systray
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            let main_window = app.get_window("main");
-            if let Some(window) = main_window {
-                window.show().unwrap();
-                window.unminimize().unwrap();
-                window.set_focus().unwrap();
-            } else {
-                let fs = app.state::<AppFileSystem>().inner().to_owned();
-                let (app_port, admin_port) = app.state::<(u16, u16)>().inner().to_owned();
-                let _r = build_main_window(fs, app, app_port, admin_port);
-            }
-        }))
-
         .invoke_handler(tauri::generate_handler![sign_zome_call, log])
         .setup(|app| {
 
-            let handle = app.handle();
+            let profile = read_profile_from_cli(app)?;
 
-            let profile = String::from("default");
+            if profile == String::from("default") {
+                app.handle().plugin(tauri_plugin_single_instance::init(move |app, _argv, _cwd| {
+                    let main_window = app.get_window("main");
+                    if let Some(window) = main_window {
+                        window.show().unwrap();
+                        window.unminimize().unwrap();
+                        window.set_focus().unwrap();
+                    } else {
+                        let fs = app.state::<AppFileSystem>().inner().to_owned();
+                        let (app_port, admin_port) = app.state::<(u16, u16)>().inner().to_owned();
+                        let _r = build_main_window(fs, app, app_port, admin_port);
+                    }
+                }))?;
+            }
+
+            let handle = app.handle();
 
             // start conductor and lair
             let fs = AppFileSystem::new(&handle, &profile)?;
@@ -153,8 +155,13 @@ pub async fn launch(
         },
     }]);
 
-    std::env::set_var("RUST_LOG", "WARN");
-    std::env::set_var("WASM_LOG", "WARN");
+    let mut network_config = KitsuneP2pConfig::default();
+    network_config.bootstrap_service = Some(url2::url2!("https://bootstrap.holo.host")); // replace-me (optional) -- change bootstrap server URL here if desired
+    network_config.transport_pool.push(TransportConfig::WebRTC {
+        signal_url: SIGNALING_SERVER.into(),
+    });
+
+    // config.
 
     // TODO: set the DHT arc depending on whether this is mobile (tauri 2.0)
     let conductor = Conductor::builder()
@@ -227,5 +234,34 @@ pub async fn install_app_if_necessary(
 }
 
 
+fn read_profile_from_cli(app: &mut App) -> Result<Profile, tauri::Error> {
+    // reading profile from cli
+    let cli_matches = app.get_cli_matches()?;
+    let profile: Profile = match cli_matches.args.get("profile") {
+    Some(data) => match data.value.clone() {
+        Value::String(profile) => {
+        if profile == "default" {
+            eprintln!("Error: The name 'default' is not allowed for a profile.");
+            panic!("Error: The name 'default' is not allowed for a profile.");
+        }
+        // \, /, and ? have a meaning as path symbols or domain socket url symbols and are therefore not allowed
+        // because they would break stuff
+        if profile.contains("/") || profile.contains("\\") || profile.contains("?") {
+            eprintln!("Error: \"/\", \"\\\" and \"?\" are not allowed in profile names.");
+            panic!("Error: \"/\", \"\\\" and \"?\" are not allowed in profile names.");
+        }
+        profile
+        },
+        _ => {
+        // println!("ERROR: Value passed to --profile option could not be interpreted as string.");
+        String::from("default")
+        // panic!("Value passed to --profile option could not be interpreted as string.")
+        }
+    },
+        None => String::from("default")
+    };
+
+    Ok(profile)
+}
 
 
