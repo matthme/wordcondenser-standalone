@@ -137,9 +137,9 @@ pub const ZOOM_ON_SCROLL: &str = r#"
 	if (ev.key === "Control") {
 		window.onwheel = (ev) => {
 		if (ev.deltaY > 0) {
-			decreaseZoomLevel(10);
+			decreaseZoomLevel(5);
 		} else if (ev.deltaY < 0) {
-			increaseZoomLevel(10);
+			increaseZoomLevel(5);
 		}
 		}
 	}
