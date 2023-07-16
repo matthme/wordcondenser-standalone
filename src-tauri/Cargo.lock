@@ -7837,7 +7837,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-single-instance"
 version = "0.0.0"
-source = "git+https://github.com/matthme/plugins-workspace?branch=single-instance-semver#866c05a50a481e805f13464d86bbb76e425f2477"
+source = "git+https://github.com/matthme/plugins-workspace?rev=5d2967627d2077fb16f3c73ec0d256170086a0e7#5d2967627d2077fb16f3c73ec0d256170086a0e7"
 dependencies = [
  "log",
  "semver 1.0.17",
