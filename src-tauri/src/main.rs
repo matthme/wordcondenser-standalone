@@ -161,7 +161,7 @@ pub async fn launch(
         signal_url: SIGNALING_SERVER.into(),
     });
 
-    // config.
+    config.network = Some(network_config);
 
     // TODO: set the DHT arc depending on whether this is mobile (tauri 2.0)
     let conductor = Conductor::builder()
