@@ -1,8 +1,8 @@
 {
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "devPath": "../pouch/ui",
-    "distDir": "../pouch/ui",
+    "beforeDevCommand": "npm run dist",
+    "devPath": "../dist",
+    "distDir": "../dist",
     "withGlobalTauri": true
   },
   "package": {
@@ -38,6 +38,16 @@
         "open": true
       }
     },
+    "cli": {
+      "description": "Running replace-me from the command line",
+      "args": [
+        {
+          "name": "profile",
+          "takesValue": true,
+          "multiple": false
+        }
+      ]
+    },
     "systemTray": {
       "iconPath": "icons/32x32.png"
     },
@@ -51,7 +61,14 @@
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
-      ]
+      ],
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "",
+        "exceptionDomain": "",
+        "signingIdentity": null,
+        "entitlements": "entitlements.plist"
+      }
     },
     "security": {
       "csp": null
