@@ -1,5 +1,5 @@
 use tauri::{CustomMenuItem, Manager, Menu, Submenu, Window, Wry};
-use tauri::api::dialog::message;
+use tauri::api::{process, dialog::message};
 
 use crate::commands::profile::open_profile_settings;
 use crate::{logs::open_logs_folder, filesystem::AppFileSystem, APP_NAME};
@@ -55,8 +55,14 @@ pub fn handle_menu_event(event_id: &str, window: &Window<Wry>) {
         "change_profile" => open_profile_settings(app_handle).unwrap(),
         "open_logs" => open_logs_folder(fs.inner().to_owned()),
         "devtools" => window.open_devtools(),
-        "restart" => app_handle.restart(),
-        "quit" => app_handle.exit(0),
+        "restart" => {
+            process::kill_children();
+            app_handle.restart();
+        },
+        "quit" => {
+            process::kill_children();
+            app_handle.exit(0)
+        },
         _ => {}
   }
 }
