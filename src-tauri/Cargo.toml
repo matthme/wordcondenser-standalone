@@ -42,8 +42,7 @@ url = "2.3.1"
 url2 = "0.0.6"
 uuid = "0.1.4"
 
-# optional (single-instance):
-tauri-plugin-single-instance = { git = "https://github.com/matthme/plugins-workspace", rev = "5d2967627d2077fb16f3c73ec0d256170086a0e7" }
+tauri-plugin-deep-link = "0.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

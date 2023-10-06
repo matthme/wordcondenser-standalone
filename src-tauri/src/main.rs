@@ -23,7 +23,7 @@ use logs::{setup_logs, log};
 use menu::{build_menu, handle_menu_event};
 use serde_json::Value;
 use system_tray::{handle_system_tray_event, app_system_tray};
-use tauri::{Manager, WindowBuilder, RunEvent, SystemTray, SystemTrayEvent, AppHandle, Window, App, api::process::Command};
+use tauri::{Manager, WindowBuilder, RunEvent, SystemTray, SystemTrayEvent, AppHandle, Window, App, api::process::Command, UserAttentionType};
 
 use utils::{sign_zome_call, ZOOM_ON_SCROLL, create_and_apply_lair_symlink};
 use commands::{profile::{get_existing_profiles, set_active_profile, set_profile_network_seed, get_active_profile, open_profile_settings}, restart::restart};
@@ -53,6 +53,12 @@ mod commands;
 
 
 fn main() {
+    let disable_deep_link = std::env::var("DISABLE_DEEP_LINK").is_ok();
+
+    if !disable_deep_link {
+        // Needs to be equal to the identifier in tauri.conf.json
+        tauri_plugin_deep_link::prepare("wordcondenser");
+    }
 
     let builder_result = tauri::Builder::default()
 
@@ -74,7 +80,7 @@ fn main() {
             open_profile_settings,
             restart,
         ])
-        .setup(|app| {
+        .setup(move |app| {
 
             let handle = app.handle();
 
@@ -90,21 +96,6 @@ fn main() {
                 },
             };
 
-            if profile == String::from("default") {
-                app.handle().plugin(tauri_plugin_single_instance::init(move |app, _argv, _cwd| {
-                    let main_window = app.get_window("main");
-                    if let Some(window) = main_window {
-                        window.show().unwrap();
-                        window.unminimize().unwrap();
-                        window.set_focus().unwrap();
-                    } else {
-                        let fs = app.state::<AppFileSystem>().inner().to_owned();
-                        let (app_port, admin_port) = app.state::<(u16, u16)>().inner().to_owned();
-                        let _r = build_main_window(fs, app, app_port, admin_port);
-                    }
-                }))?;
-            }
-
             // start conductor and lair
             let fs = AppFileSystem::new(&handle, &profile).unwrap();
 
@@ -116,12 +107,33 @@ fn main() {
             app.manage(fs.clone());
 
             tauri::async_runtime::block_on(async move {
-                let (conductor, app_port, admin_port) = launch(&fs, PASSWORD.to_string()).await.unwrap();
+                let (meta_lair_client, app_port, admin_port) = launch(&fs, PASSWORD.to_string()).await.unwrap();
 
-                app.manage(Mutex::new(conductor));
+                app.manage(Mutex::new(meta_lair_client));
                 app.manage((app_port, admin_port));
 
-                let _app_window: Window = build_main_window(fs, &app.app_handle(), app_port, admin_port);
+                let app_window: Window = build_main_window(fs, &app.app_handle(), app_port, admin_port);
+
+                if !disable_deep_link {
+                    if let Err(err) = tauri_plugin_deep_link::register("wordcondenser", move |request| {
+                        app_window.emit("deep-link-received", request).unwrap();
+                        app_window
+                            .request_user_attention(Some(UserAttentionType::Informational))
+                            .unwrap();
+                        app_window.show().unwrap();
+                        app_window.unminimize().unwrap();
+                        app_window.set_focus().unwrap();
+
+                        if cfg!(target_os = "linux") { // remove dock icon wiggeling after 10 seconds
+                            std::thread::sleep(std::time::Duration::from_secs(10));
+                            app_window
+                            .request_user_attention(None)
+                            .unwrap();
+                        }
+                    }) {
+                        println!("Error registering the deep link plugin: {:?}", err);
+                    }
+                }
             });
 
             Ok(())
@@ -168,6 +180,7 @@ pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u1
         .data_directory(fs.profile_data_dir)
         .center()
         .initialization_script(format!("window.__HC_LAUNCHER_ENV__ = {{ 'APP_INTERFACE_PORT': {}, 'ADMIN_INTERFACE_PORT': {}, 'INSTALLED_APP_ID': '{}' }}", app_port, admin_port, APP_ID).as_str())
+        .initialization_script("window.__HC_KANGAROO__ = {{}}")
         .initialization_script(ZOOM_ON_SCROLL)
         .build()
         .unwrap()
