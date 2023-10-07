@@ -10188,7 +10188,7 @@ dependencies = [
 
 [[package]]
 name = "word-condenser-standalone"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "either",
  "futures",
