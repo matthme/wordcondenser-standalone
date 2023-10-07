@@ -3757,6 +3757,15 @@ dependencies = [
 
 [[package]]
 name = "infer"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f178e61cdbfe084aa75a2f4f7a25a5bb09701a47ae1753608f194b15783c937a"
+dependencies = [
+ "cfb",
+]
+
+[[package]]
+name = "infer"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a898e4b7951673fce96614ce5751d13c40fc5674bc2d759288e46c3ab62598b3"
@@ -3812,6 +3821,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
 dependencies = [
  "cfg-if 1.0.0",
+]
+
+[[package]]
+name = "interprocess"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81f2533f3be42fffe3b5e63b71aeca416c1c3bc33e4e27be018521e76b1f38fb"
+dependencies = [
+ "cfg-if 1.0.0",
+ "libc",
+ "rustc_version",
+ "to_method",
+ "winapi 0.3.9",
 ]
 
 [[package]]
@@ -4596,6 +4618,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
 
 [[package]]
+name = "mac-notification-sys"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51fca4d74ff9dbaac16a01b924bc3693fa2bba0862c2c633abc73f9a8ea21f64"
+dependencies = [
+ "cc",
+ "dirs-next",
+ "objc-foundation",
+ "objc_id",
+ "time",
+]
+
+[[package]]
 name = "mach"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5059,6 +5094,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61807f77802ff30975e01f4f071c8ba10c022052f98b3294119f3e615d13e5be"
 
 [[package]]
+name = "notify-rust"
+version = "4.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d7b75c8958cb2eab3451538b32db8a7b74006abc33eb2e6a9a56d21e4775c2b"
+dependencies = [
+ "log",
+ "mac-notification-sys",
+ "serde",
+ "tauri-winrt-notification",
+ "zbus",
+]
+
+[[package]]
 name = "ntapi"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5215,6 +5263,28 @@ dependencies = [
  "objc",
  "objc_id",
 ]
+
+[[package]]
+name = "objc-sys"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99e1d07c6eab1ce8b6382b8e3c7246fe117ff3f8b34be065f5ebace6749fe845"
+
+[[package]]
+name = "objc2"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "559c5a40fdd30eb5e344fbceacf7595a81e242529fb4e21cf5f43fb4f11ff98d"
+dependencies = [
+ "objc-sys",
+ "objc2-encode",
+]
+
+[[package]]
+name = "objc2-encode"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d079845b37af429bfe5dfa76e6d087d788031045b25cfc6fd898486fd9847666"
 
 [[package]]
 name = "objc_exception"
@@ -5387,6 +5457,16 @@ dependencies = [
  "log",
  "serde",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "os_pipe"
+version = "1.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ae859aa07428ca9a929b936690f8b12dc5f11dd8c6992a18ca93919f28bc177"
+dependencies = [
+ "libc",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -6010,6 +6090,15 @@ name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
+
+[[package]]
+name = "quick-xml"
+version = "0.23.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11bafc859c6815fbaffbbbf4229ecb767ac913fecb27f9ad4343662e9ef099ea"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "quick-xml"
@@ -7282,6 +7371,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared_child"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0d94659ad3c2137fef23ae75b03d5241d633f8acded53d672decfa0e6e0caef"
+dependencies = [
+ "libc",
+ "winapi 0.3.9",
+]
+
+[[package]]
 name = "shrinkwraprs"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7888,11 +7987,15 @@ dependencies = [
  "heck 0.4.1",
  "http",
  "ignore",
+ "infer 0.9.0",
  "minisign-verify",
+ "notify-rust",
  "objc",
  "once_cell",
  "open",
+ "os_pipe",
  "percent-encoding 2.3.0",
+ "png",
  "rand 0.8.5",
  "raw-window-handle",
  "regex",
@@ -7903,6 +8006,7 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "serialize-to-javascript",
+ "shared_child",
  "state",
  "tar",
  "tauri-macros",
@@ -7981,18 +8085,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-single-instance"
-version = "0.0.0"
-source = "git+https://github.com/matthme/plugins-workspace?rev=5d2967627d2077fb16f3c73ec0d256170086a0e7#5d2967627d2077fb16f3c73ec0d256170086a0e7"
+name = "tauri-plugin-deep-link"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4536f5f6602e8fdfaa7b3b185076c2a0704f8eb7015f4e58461eb483ec3ed1f8"
 dependencies = [
+ "dirs",
+ "interprocess",
  "log",
- "semver 1.0.19",
- "serde",
- "serde_json",
- "tauri",
- "thiserror",
+ "objc2",
+ "once_cell",
+ "tauri-utils",
  "windows-sys 0.48.0",
- "zbus",
+ "winreg 0.50.0",
 ]
 
 [[package]]
@@ -8048,7 +8153,7 @@ dependencies = [
  "glob",
  "heck 0.4.1",
  "html5ever 0.26.0",
- "infer",
+ "infer 0.12.0",
  "json-patch",
  "kuchikiki",
  "log",
@@ -8074,6 +8179,16 @@ checksum = "5993dc129e544393574288923d1ec447c857f3f644187f4fbf7d9a875fbfc4fb"
 dependencies = [
  "embed-resource",
  "toml 0.7.8",
+]
+
+[[package]]
+name = "tauri-winrt-notification"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f5bff1d532fead7c43324a0fa33643b8621a47ce2944a633be4cb6c0240898f"
+dependencies = [
+ "quick-xml 0.23.1",
+ "windows 0.39.0",
 ]
 
 [[package]]
@@ -8305,6 +8420,12 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "to_method"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7c4ceeeca15c8384bbc3e011dbd8fccb7f068a440b752b7d9b32ceb0ca0e2e8"
 
 [[package]]
 name = "tokio"
@@ -10067,12 +10188,13 @@ dependencies = [
 
 [[package]]
 name = "word-condenser-standalone"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "either",
  "futures",
  "holochain",
  "holochain_client",
+ "holochain_keystore",
  "holochain_types",
  "holochain_zome_types",
  "log",
@@ -10084,11 +10206,12 @@ dependencies = [
  "semver 1.0.19",
  "serde",
  "serde_json",
+ "serde_yaml 0.8.26",
  "sodoken",
  "symlink",
  "tauri",
  "tauri-build",
- "tauri-plugin-single-instance",
+ "tauri-plugin-deep-link",
  "thiserror",
  "url 2.4.1",
  "url2",

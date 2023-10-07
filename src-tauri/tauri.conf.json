@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "Word Condenser",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "tauri": {
     "cli": {
@@ -32,6 +32,14 @@
       "all": false,
       "clipboard": {
         "writeText": true
+      },
+      "dialog": {
+        "all": false,
+        "ask": false,
+        "confirm": false,
+        "message": true,
+        "open": false,
+        "save": false
       },
       "shell": {
         "all": false,
@@ -62,13 +70,22 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
+      "externalBin": [
+        "bins/holochain-wc-v0.2.3-beta-rc.1",
+        "bins/lair-keystore-wc-v0.3.0"
+      ],
       "macOS": {
         "frameworks": [],
         "minimumSystemVersion": "",
         "exceptionDomain": "",
         "signingIdentity": null,
         "entitlements": "entitlements.plist"
-      }
+      },
+      "resources": [
+        "icons/icon_priority_medium_32x32.png",
+        "icons/icon_priority_high_32x32.png",
+        "icons/32x32.png"
+      ]
     },
     "security": {
       "csp": null
