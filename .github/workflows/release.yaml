@@ -27,6 +27,7 @@ jobs:
         with:
           override: true
           toolchain: stable
+          target: aarch64-apple-darwin
       - name: install Go stable
         uses: actions/setup-go@v4
         with:
@@ -52,11 +53,11 @@ jobs:
         run: |
           mkdir src-tauri/bins
 
-          cargo install --version 0.3.0 lair_keystore
+          cargo install --version 0.3.0 --target universal-apple-darwin lair_keystore
           LAIR_PATH=$(which lair-keystore)
           cp $LAIR_PATH src-tauri/bins/lair-keystore-wc-v0.3.0-x86_64-apple-darwin
 
-          cargo install holochain --version 0.2.3-beta-rc.1 --features sqlite-encrypted
+          cargo install holochain --version 0.2.3-beta-rc.1 --target universal-apple-darwin --features sqlite-encrypted
           HOLOCHAIN_PATH=$(which holochain)
           cp $HOLOCHAIN_PATH src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-x86_64-apple-darwin
 
@@ -98,3 +99,5 @@ jobs:
           releaseDraft: true
           prerelease: true
           args: --verbose
+          # if we're on macos, we need to build a universal binary for x86_64 and arm64
+          args: ${{ matrix.platform == 'macos-11' && '--verbose --target universal-apple-darwin' || '--verbose' }}
