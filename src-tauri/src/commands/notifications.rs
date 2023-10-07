@@ -77,7 +77,7 @@ async fn change_systray_icon_state(
             let systray_icon_state = mutex.lock().await.get_icon_state();
             match systray_icon_state {
                 IconState::Clean | IconState::Low => {
-                    let icon_path_option = app_handle.path_resolver().resolve_resource("icons/icon_priority_medium_32x32.png");
+                    let icon_path_option = app_handle.path_resolver().resolve_resource("icons/icon_priority_high_32x32.png");
                     if let Some(icon_path) = icon_path_option {
                         app_handle.tray_handle().set_icon(Icon::File(icon_path))?;
                     }
