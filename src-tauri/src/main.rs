@@ -23,10 +23,20 @@ use logs::{setup_logs, log};
 use menu::{build_menu, handle_menu_event};
 use serde_json::Value;
 use system_tray::{handle_system_tray_event, app_system_tray};
-use tauri::{Manager, WindowBuilder, RunEvent, SystemTray, SystemTrayEvent, AppHandle, Window, App, api::process::Command, UserAttentionType};
+use tauri::{Manager, WindowBuilder, RunEvent, SystemTray, SystemTrayEvent, AppHandle, Window, App, api::process::Command, UserAttentionType, WindowEvent};
 
 use utils::{sign_zome_call, ZOOM_ON_SCROLL, create_and_apply_lair_symlink};
-use commands::{profile::{get_existing_profiles, set_active_profile, set_profile_network_seed, get_active_profile, open_profile_settings}, restart::restart};
+use commands::{
+    profile::{
+        get_existing_profiles,
+        set_active_profile,
+        set_profile_network_seed,
+        get_active_profile,
+        open_profile_settings
+    },
+    restart::restart,
+    notifications::{clear_systray_icon, notify_os, SysTrayIconState, IconState}
+};
 
 
 const APP_NAME: &str = "Word Condenser"; // name of the app. Can be changed without breaking your app.
@@ -71,6 +81,8 @@ fn main() {
           _ => {}
         })
         .invoke_handler(tauri::generate_handler![
+            clear_systray_icon,
+            notify_os,
             sign_zome_call,
             log,
             set_active_profile,
@@ -106,23 +118,34 @@ fn main() {
 
             app.manage(fs.clone());
 
+            app.manage(Mutex::new(SysTrayIconState { icon_state: IconState::Clean }));
+
             tauri::async_runtime::block_on(async move {
                 let (meta_lair_client, app_port, admin_port) = launch(&fs, PASSWORD.to_string()).await.unwrap();
 
                 app.manage(Mutex::new(meta_lair_client));
                 app.manage((app_port, admin_port));
 
-                let app_window: Window = build_main_window(fs, &app.app_handle(), app_port, admin_port);
+                // Get startup time to write on window object for UI to use.
+                let startup_time = match std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
+                    Ok(time) => Some(time.as_millis()),
+                    Err(e) => {
+                        log::error!("Failed to get system time: {}", e);
+                        None
+                    }
+                };
+
+                let app_window: Window = build_main_window(fs, &app.app_handle(), app_port, admin_port, startup_time);
 
                 if !disable_deep_link {
                     if let Err(err) = tauri_plugin_deep_link::register("wordcondenser", move |request| {
                         app_window.emit("deep-link-received", request).unwrap();
-                        app_window
-                            .request_user_attention(Some(UserAttentionType::Informational))
-                            .unwrap();
                         app_window.show().unwrap();
                         app_window.unminimize().unwrap();
                         app_window.set_focus().unwrap();
+                        app_window
+                            .request_user_attention(Some(UserAttentionType::Informational))
+                            .unwrap();
 
                         if cfg!(target_os = "linux") { // remove dock icon wiggeling after 10 seconds
                             std::thread::sleep(std::time::Duration::from_secs(10));
@@ -142,19 +165,36 @@ fn main() {
 
         match builder_result {
             Ok(builder) => {
-                builder.run(|_app_handle, event| {
-                    // This event is emitted upon quitting the App via cmq+Q on macOS.
-                    // Sidecar binaries need to get explicitly killed in this case (https://github.com/holochain/launcher/issues/141)
-                    if let RunEvent::Exit = event {
-                        tauri::api::process::kill_children();
-                    }
+                builder.run(|app_handle, event| {
+                    match event {
+                        // This event is emitted upon quitting the Launcher via cmq+Q on macOS.
+                        // Sidecar binaries need to get explicitly killed in this case (https://github.com/holochain/launcher/issues/141)
+                        RunEvent::Exit => tauri::api::process::kill_children(),
 
-                    // optional (systray):
-                    // This event is emitted upon pressing the x to close the App window
-                    // The app is prevented from exiting to keep it running in the background with the system tray
-                    // Remove those lines below with () if you don't want the systray functionality
-                    if let RunEvent::ExitRequested { api, .. } = event {
-                        api.prevent_exit();
+                        // optional (systray):
+                        // This event is emitted upon pressing the x to close the App window
+                        // The app is prevented from exiting to keep it running in the background with the system tray
+                        // Remove those lines below with () if you don't want the systray functionality
+                        RunEvent::ExitRequested { api, .. } => api.prevent_exit(),
+
+                        // If a window is requested to be closed, hide it instead. This is to keep the UI running in the
+                        // background to be able to send/receive notifications.
+                        // TODO garbage collect windows in the front-end if they have notificationSettings all turned off
+                        RunEvent::WindowEvent { label, event: window_event, .. } => {
+                            match window_event {
+                                WindowEvent::CloseRequested { api, .. } => {
+                                    if label == "main" {
+                                        let window_option = app_handle.get_window(&label);
+                                        if let Some(window) = window_option {
+                                            window.hide().unwrap();
+                                            api.prevent_close();
+                                        }
+                                    }
+                                },
+                                _ => (),
+                            }
+                        },
+                        _ => (),
                     }
               });
             }
@@ -164,7 +204,13 @@ fn main() {
 }
 
 
-pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u16, admin_port: u16) -> Window {
+pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u16, admin_port: u16, startup_time: Option<u128>) -> Window {
+
+    let startup_time = match startup_time {
+        Some(time) => time.to_string(),
+        None => String::from("undefined"),
+    };
+
     WindowBuilder::new(
         &app_handle.app_handle(),
         "main",
@@ -180,7 +226,7 @@ pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u1
         .data_directory(fs.profile_data_dir)
         .center()
         .initialization_script(format!("window.__HC_LAUNCHER_ENV__ = {{ 'APP_INTERFACE_PORT': {}, 'ADMIN_INTERFACE_PORT': {}, 'INSTALLED_APP_ID': '{}' }}", app_port, admin_port, APP_ID).as_str())
-        .initialization_script("window.__HC_KANGAROO__ = {{}}")
+        .initialization_script(format!("window.__HC_KANGAROO__ = {{ startup_time: {} }}", startup_time).as_str())
         .initialization_script(ZOOM_ON_SCROLL)
         .build()
         .unwrap()
@@ -192,6 +238,14 @@ pub async fn launch(
 ) -> AppResult<(MetaLairClient, u16, u16)> {
 
     let log_level = log::Level::Warn;
+
+    if !fs.keystore_dir().exists() {
+        std::fs::create_dir_all(fs.keystore_dir().clone())?;
+    }
+
+    if !fs.conductor_dir().exists() {
+        std::fs::create_dir_all(fs.conductor_dir().clone())?;
+    }
 
     // initialize lair keystore if necessary
     if !fs.keystore_initialized() {
