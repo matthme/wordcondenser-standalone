@@ -140,18 +140,19 @@ fn main() {
                 if !disable_deep_link {
                     if let Err(err) = tauri_plugin_deep_link::register("wordcondenser", move |request| {
                         app_window.emit("deep-link-received", request).unwrap();
-                        app_window.show().unwrap();
-                        app_window.unminimize().unwrap();
-                        app_window.set_focus().unwrap();
                         app_window
                             .request_user_attention(Some(UserAttentionType::Informational))
                             .unwrap();
+                        app_window.show().unwrap();
+                        app_window.unminimize().unwrap();
+                        app_window.set_focus().unwrap();
 
                         if cfg!(target_os = "linux") { // remove dock icon wiggeling after 10 seconds
                             std::thread::sleep(std::time::Duration::from_secs(10));
+                            println!("REMOVING USER ATTENTION");
                             app_window
-                            .request_user_attention(None)
-                            .unwrap();
+                                .request_user_attention(None)
+                                .unwrap();
                         }
                     }) {
                         println!("Error registering the deep link plugin: {:?}", err);
