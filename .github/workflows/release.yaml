@@ -98,6 +98,5 @@ jobs:
           releaseBody: "See assets below to download and install this version."
           releaseDraft: true
           prerelease: true
-          args: --verbose
           # if we're on macos, we need to build a universal binary for x86_64 and arm64
           args: ${{ matrix.platform == 'macos-11' && '--verbose --target universal-apple-darwin' || '--verbose' }}
