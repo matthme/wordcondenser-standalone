@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-11]
+        platform: [windows-2019, ubuntu-20.04]
     env:
       MACOSX_DEPLOYMENT_TARGET: 10.13
 
