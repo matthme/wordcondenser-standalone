@@ -74,7 +74,7 @@ jobs:
           cp $HOLOCHAIN_PATH src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-aarch64-apple-darwin
 
           # create universal holochain binary
-          lipo -create src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-x86_64-apple-darwin src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-aarch64-apple-darwin -outpu src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-universal-apple-darwin
+          lipo -create src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-x86_64-apple-darwin src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-aarch64-apple-darwin -output src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-universal-apple-darwin
 
           # remove non-universal binaries to make sure the bundler is using the universal ones
           rm src-tauri/bins/lair-keystore-wc-v0.3.0-x86_64-apple-darwin
