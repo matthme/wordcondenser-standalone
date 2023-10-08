@@ -42,8 +42,8 @@ use commands::{
 const APP_NAME: &str = "Word Condenser"; // name of the app. Can be changed without breaking your app.
 const APP_ID: &str = "Word Condenser"; // App id used to install your app in the Holochain conductor - can be the same as APP_NAME. Changing this means a breaking change to your app.
 pub const WINDOW_TITLE: &str = "Word Condenser"; // Title of the window
-pub const WINDOW_WIDTH: f64 = 1400.0; // Default window width when the app is opened
-pub const WINDOW_HEIGHT: f64 = 880.0; // Default window height when the app is opened
+// pub const WINDOW_WIDTH: f64 = 1400.0; // Default window width when the app is opened
+// pub const WINDOW_HEIGHT: f64 = 880.0; // Default window height when the app is opened
 const PASSWORD: &str = "pass"; // Password to the lair keystore
 pub const DEFAULT_NETWORK_SEED: Option<&str> = None;  // replace-me (optional): Depending on your application, you may want to put a network seed here or
                                                     // read it secretly from an environment variable. If so, replace `None` with `Some("your network seed here")`
@@ -96,6 +96,12 @@ fn main() {
 
             let handle = app.handle();
 
+            let mut deep_link_url = None;
+
+            if cfg!(not(target_os = "macos")) {
+                deep_link_url = std::env::args().nth(1);
+            }
+
             // convert profile from CLI to option, then read from filesystem instead. if profile from CLI,
             // then set current profile!
             let profile_from_cli = read_profile_from_cli(app)?;
@@ -135,10 +141,11 @@ fn main() {
                     }
                 };
 
-                let app_window: Window = build_main_window(fs, &app.app_handle(), app_port, admin_port, startup_time);
+                let app_window: Window = build_main_window(fs, &app.app_handle(), app_port, admin_port, startup_time, deep_link_url);
 
                 if !disable_deep_link {
                     if let Err(err) = tauri_plugin_deep_link::register("wordcondenser", move |request| {
+                        println!("Received deep-link: {}", request);
                         app_window.emit("deep-link-received", request).unwrap();
                         app_window
                             .request_user_attention(Some(UserAttentionType::Informational))
@@ -149,7 +156,6 @@ fn main() {
 
                         if cfg!(target_os = "linux") { // remove dock icon wiggeling after 10 seconds
                             std::thread::sleep(std::time::Duration::from_secs(10));
-                            println!("REMOVING USER ATTENTION");
                             app_window
                                 .request_user_attention(None)
                                 .unwrap();
@@ -205,14 +211,14 @@ fn main() {
 }
 
 
-pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u16, admin_port: u16, startup_time: Option<u128>) -> Window {
+pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u16, admin_port: u16, startup_time: Option<u128>, deep_link_url: Option<String>) -> Window {
 
     let startup_time = match startup_time {
         Some(time) => time.to_string(),
         None => String::from("undefined"),
     };
 
-    WindowBuilder::new(
+    let mut builder = WindowBuilder::new(
         &app_handle.app_handle(),
         "main",
         tauri::WindowUrl::App("index.html".into())
@@ -221,14 +227,21 @@ pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u1
         .menu(build_menu())
         // optional -- diables file drop handler. Disabling is required for drag and drop to work on certain platforms
         .disable_file_drop_handler()
-        .inner_size(WINDOW_WIDTH, WINDOW_HEIGHT)
+        // .inner_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         .resizable(true)
         .title(WINDOW_TITLE)
         .data_directory(fs.profile_data_dir)
         .center()
+        .maximized(true)
         .initialization_script(format!("window.__HC_LAUNCHER_ENV__ = {{ 'APP_INTERFACE_PORT': {}, 'ADMIN_INTERFACE_PORT': {}, 'INSTALLED_APP_ID': '{}' }}", app_port, admin_port, APP_ID).as_str())
         .initialization_script(format!("window.__HC_KANGAROO__ = {{ startup_time: {} }}", startup_time).as_str())
-        .initialization_script(ZOOM_ON_SCROLL)
+        .initialization_script(ZOOM_ON_SCROLL);
+
+    if let Some(deep_link) = deep_link_url {
+        builder = builder.initialization_script(format!("window.localStorage.setItem('initialDeepLink', '{}')", deep_link).as_str());
+    }
+
+    builder
         .build()
         .unwrap()
 }
