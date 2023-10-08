@@ -53,8 +53,6 @@ jobs:
         run: |
           mkdir src-tauri/bins
 
-          lipo --version
-
           cargo install --version 0.3.0 lair_keystore
           LAIR_PATH=$(which lair-keystore)
           cp $LAIR_PATH src-tauri/bins/lair-keystore-wc-v0.3.0-x86_64-apple-darwin
@@ -62,6 +60,10 @@ jobs:
           cargo install --version 0.3.0 --target aarch64-apple-darwin lair_keystore
           LAIR_PATH=$(which lair-keystore)
           cp $LAIR_PATH src-tauri/bins/lair-keystore-wc-v0.3.0-aarch64-apple-darwin
+
+          # create universal lair binary
+          lipo -create src-tauri/bins/lair-keystore-wc-v0.3.0-x86_64-apple-darwin src-tauri/bins/lair-keystore-wc-v0.3.0-aarch64-apple-darwin -output src-tauri/bins/lair-keystore-wc-v0.3.0-universal-apple-darwin
+
 
           cargo install holochain --version 0.2.3-beta-rc.1 --features sqlite-encrypted
           HOLOCHAIN_PATH=$(which holochain)
@@ -71,8 +73,7 @@ jobs:
           HOLOCHAIN_PATH=$(which holochain)
           cp $HOLOCHAIN_PATH src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-aarch64-apple-darwin
 
-          # create universal binaries
-          lipo -create src-tauri/bins/lair-keystore-wc-v0.3.0-x86_64-apple-darwin src-tauri/bins/lair-keystore-wc-v0.3.0-aarch64-apple-darwin -output src-tauri/bins/lair-keystore-wc-v0.3.0-universal-apple-darwin
+          # create universal holochain binary
           lipo -create src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-x86_64-apple-darwin src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-aarch64-apple-darwin -outpu src-tauri/bins/holochain-wc-v0.2.3-beta-rc.1-universal-apple-darwin
 
           # remove non-universal binaries to make sure the bundler is using the universal ones
