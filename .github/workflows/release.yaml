@@ -104,7 +104,6 @@ jobs:
       - name: setup universal binaries (macos only)
         if: matrix.platform == 'macos-11'
         run: |
-          mkdir src-tauri/bins
 
           cargo install --version 0.3.0 --target aarch64-apple-darwin lair_keystore
           LAIR_PATH=$(which lair-keystore)
