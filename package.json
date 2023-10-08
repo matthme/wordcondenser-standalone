@@ -7,7 +7,7 @@
     "kangaroo": "npm run dist && npm run tauri build",
     "dist": "rimraf ./dist && extract-zip ./pouch/ui.zip ./dist && cpy ./src-tauri/assets/ ./dist/kangaroo_assets --flat",
     "tauri": "tauri",
-    "prepare": "curl -L --output pouch/word-condenser.happ https://drive.switch.ch/index.php/s/IvkwsWMAi3MlCBP/download && curl -L --output ./pouch/ui.zip https://drive.switch.ch/index.php/s/oMgVrgzRe1eYKj2/download"
+    "prepare": "curl -L --output pouch/word-condenser.happ https://drive.switch.ch/index.php/s/IvkwsWMAi3MlCBP/download && curl -L --output ./pouch/ui.zip https://drive.switch.ch/index.php/s/lxPj4byxTMga0Hi/download"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.1",
