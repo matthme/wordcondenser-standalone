@@ -14,7 +14,7 @@ pub fn handle_system_tray_event(app: &AppHandle<Wry>, event_id: String) {
                 // Should never happen because main window should never be closed.
                 let fs = app.state::<AppFileSystem>().inner().to_owned();
                 let (app_port, admin_port) = app.state::<(u16, u16)>().inner().to_owned();
-                let _r = build_main_window(fs, app, app_port, admin_port, None);
+                let _r = build_main_window(fs, app, app_port, admin_port, None, None);
             }
         }
         "restart" => {

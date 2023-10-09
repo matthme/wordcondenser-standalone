@@ -219,7 +219,7 @@ pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u1
     };
 
     let mut builder = WindowBuilder::new(
-        &app_handle.app_handle(),
+        app_handle,
         "main",
         tauri::WindowUrl::App("index.html".into())
       )
