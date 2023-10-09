@@ -146,13 +146,17 @@ fn main() {
                 if !disable_deep_link {
                     if let Err(err) = tauri_plugin_deep_link::register("wordcondenser", move |request| {
                         println!("Received deep-link: {}", request);
-                        app_window.emit("deep-link-received", request).unwrap();
+                        app_window.emit("deep-link-received", request.clone()).unwrap();
                         app_window
                             .request_user_attention(Some(UserAttentionType::Informational))
                             .unwrap();
                         app_window.show().unwrap();
                         app_window.unminimize().unwrap();
                         app_window.set_focus().unwrap();
+
+                        if cfg!(target_os = "macos") {
+                            app_window.eval(format!("window.localStorage.setItem('initialDeepLink', {})", request).as_str()).unwrap()
+                        }
 
                         if cfg!(target_os = "linux") { // remove dock icon wiggeling after 10 seconds
                             std::thread::sleep(std::time::Duration::from_secs(10));
@@ -230,9 +234,8 @@ pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u1
         // .inner_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         .resizable(true)
         .title(WINDOW_TITLE)
-        .data_directory(fs.profile_data_dir)
-        .center()
         .maximized(true)
+        .data_directory(fs.profile_data_dir)
         .initialization_script(format!("window.__HC_LAUNCHER_ENV__ = {{ 'APP_INTERFACE_PORT': {}, 'ADMIN_INTERFACE_PORT': {}, 'INSTALLED_APP_ID': '{}' }}", app_port, admin_port, APP_ID).as_str())
         .initialization_script(format!("window.__HC_KANGAROO__ = {{ startup_time: {} }}", startup_time).as_str())
         .initialization_script(ZOOM_ON_SCROLL);
@@ -241,9 +244,22 @@ pub fn build_main_window(fs: AppFileSystem, app_handle: &AppHandle, app_port: u1
         builder = builder.initialization_script(format!("window.localStorage.setItem('initialDeepLink', '{}')", deep_link).as_str());
     }
 
-    builder
+    // // maximizing the window does not seem to work on Windows
+    // if cfg!(not(target_family="windows")) {
+    //     builder = builder.maximized(true);
+    // }
+
+    let window = builder
         .build()
-        .unwrap()
+        .unwrap();
+
+    // // try maximizing after building the window instead on Windows
+    // if cfg!(target_family="windows") {
+    //     window.maximize().unwrap();
+    // }
+
+    window
+
 }
 
 pub async fn launch(
