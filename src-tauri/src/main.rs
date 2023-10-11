@@ -197,7 +197,12 @@ fn main() {
                                     if label == "main" {
                                         let window_option = app_handle.get_window(&label);
                                         if let Some(window) = window_option {
+                                            #[cfg(not(target_os = "macos"))]
                                             window.hide().unwrap();
+                                            // https://github.com/tauri-apps/tauri/issues/3084
+                                            #[cfg(target_os = "macos")]
+                                            app_handle.hide();
+
                                             api.prevent_close();
                                         }
                                     }
