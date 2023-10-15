@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "Word Condenser",
-    "version": "0.2.2"
+    "version": "0.1.2"
   },
   "tauri": {
     "cli": {
@@ -23,7 +23,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://drive.switch.ch/index.php/s/0bdj5TGQXvYZ8G6/download"
+        "https://drive.switch.ch/index.php/s/Y0pdrE8eqKoT8qD/download"
       ],
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDMwMEI5ODQ1QjU5NUZFMzkKUldRNS9wVzFSWmdMTURpdm9Mck5WWi9FaHFNaWhzVlVDa3k2V0tzbmJodTNUTXRnRTQ5VENpNWwK"
@@ -71,7 +71,7 @@
         "icons/icon.ico"
       ],
       "externalBin": [
-        "bins/holochain-wc-v0.2.3-beta-rc.1",
+        "bins/holochain-wc-v0.1.6",
         "bins/lair-keystore-wc-v0.3.0"
       ],
       "macOS": {

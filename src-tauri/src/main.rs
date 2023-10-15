@@ -12,7 +12,7 @@ use holochain::{conductor::{
     config::{AdminInterfaceConfig, ConductorConfig, KeystoreConfig},
     interface::InterfaceDriver,
     Conductor, ConductorBuilder,
-}, prelude::{KitsuneP2pConfig, TransportConfig}};
+}, prelude::{KitsuneP2pConfig, ProxyConfig, TransportConfig, kitsune_p2p::dependencies::kitsune_p2p_types::config::KitsuneP2pTuningParams}};
 use holochain_types::prelude::AppBundle;
 use holochain_keystore::MetaLairClient;
 
@@ -47,7 +47,6 @@ pub const WINDOW_TITLE: &str = "Word Condenser"; // Title of the window
 const PASSWORD: &str = "pass"; // Password to the lair keystore
 pub const DEFAULT_NETWORK_SEED: Option<&str> = None;  // replace-me (optional): Depending on your application, you may want to put a network seed here or
                                                     // read it secretly from an environment variable. If so, replace `None` with `Some("your network seed here")`
-const SIGNALING_SERVER: &str = "wss://signal.holo.host"; // replace-me (optional): Change the signaling server if you want
 
 
 mod conductor;
@@ -311,9 +310,20 @@ pub async fn launch(
     }]);
 
     let mut network_config = KitsuneP2pConfig::default();
-    network_config.bootstrap_service = Some(url2::url2!("https://bootstrap.holo.host")); // replace-me (optional) -- change bootstrap server URL here if desired
-    network_config.transport_pool.push(TransportConfig::WebRTC {
-        signal_url: SIGNALING_SERVER.into(),
+    network_config.bootstrap_service = Some(url2::url2!("https://bootstrap.holo.host"));
+
+    let tuning_params = KitsuneP2pTuningParams::default();
+    network_config.tuning_params = tuning_params;
+
+    network_config.transport_pool.push(TransportConfig::Proxy {
+      sub_transport: Box::new(TransportConfig::Quic {
+        bind_to: None,
+        override_host: None,
+        override_port: None,
+      }),
+      proxy_config: ProxyConfig::RemoteProxyClient {
+        proxy_url:  url2::url2!("kitsune-proxy://f3gH2VMkJ4qvZJOXx0ccL_Zo5n-s_CnBjSzAsEHHDCA/kitsune-quic/h/137.184.142.208/p/5788/--")
+      },
     });
 
     config.network = Some(network_config);
@@ -334,7 +344,7 @@ pub async fn launch(
         .expect("Could not write conductor config");
 
     // NEW_VERSION change holochain version number here if necessary
-    let command = Command::new_sidecar("holochain-wc-v0.2.3-beta-rc.1")
+    let command = Command::new_sidecar("holochain-wc-v0.1.6")
         .map_err(|err| AppError::LaunchHolochainError(
             LaunchHolochainError::SidecarBinaryCommandError(format!("{}", err)))
         )?;
