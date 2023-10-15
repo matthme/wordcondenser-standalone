@@ -1,6 +1,6 @@
 [package]
 name = "word-condenser-standalone" # replace-me
-version = "0.2.1" # replace-me -- Choose wisely, see "Note on Versioning" in README
+version = "0.2.2" # replace-me -- Choose wisely, see "Note on Versioning" in README
 description = "Holochain App to collectively condense latent [term that yet needs to be condensed] dissolved in the grammatical space of human collectives."
 authors = ["you"]
 license = ""
